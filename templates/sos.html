@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency SOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">SmartTourist</div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+    </div>
+</div>
+
+<div class="auth-box">
+    <h1>🚨 Emergency SOS</h1>
+    <p>Your location will be sent automatically</p>
+
+    <form method="post">
+        <input type="hidden" name="lat" id="lat">
+        <input type="hidden" name="lon" id="lon">
+
+        <button class="sos-btn">SEND SOS</button>
+    </form>
+</div>
+
+<script>
+navigator.geolocation.getCurrentPosition(function(position) {
+    document.getElementById("lat").value = position.coords.latitude;
+    document.getElementById("lon").value = position.coords.longitude;
+});
+</script>
+
+</body>
+</html>

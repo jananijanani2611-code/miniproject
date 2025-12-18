@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">Admin Panel</div>
+</div>
+
+<div class="auth-box">
+    <h1>Admin Login</h1>
+    <form method="post">
+        <input placeholder="Username" required>
+        <input type="password" placeholder="Password" required>
+        <button>Login</button>
+    </form>
+</div>
+
+</body>
+</html>

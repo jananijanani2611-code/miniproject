@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">SmartTourist</div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/register">Signup</a>
+    </div>
+</div>
+
+
+<div class="auth-box">
+    <h1>Tourist Login</h1>
+    <form method="post">
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button>Login</button>
+    </form>
+</div>
+
+</body>
+</html>
