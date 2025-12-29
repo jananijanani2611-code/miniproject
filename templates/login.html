@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Tourist Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -10,18 +10,20 @@
     <div class="logo">SmartTourist</div>
     <div class="nav-links">
         <a href="/">Home</a>
-        <a href="/register">Signup</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/map">Map</a>
     </div>
 </div>
 
-
-<div class="auth-box">
-    <h1>Tourist Login</h1>
-    <form method="post">
-        <input type="email" placeholder="Email" required>
-        <input type="password" placeholder="Password" required>
-        <button>Login</button>
-    </form>
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>Tourist Login</h1>
+        <form method="post">
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Password" required>
+            <button class="primary-btn">Login</button>
+        </form>
+    </div>
 </div>
 
 </body>

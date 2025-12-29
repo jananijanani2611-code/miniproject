@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -8,17 +9,21 @@
 
 <div class="navbar">
     <div class="logo">SmartTourist</div>
+
+    <div class="sos-center">
+        <a href="/sos" class="sos-btn">🚨 SOS</a>
+    </div>
+
     <div class="nav-links">
         <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
         <a href="/map">Map</a>
-        <a href="/sos">SOS</a>
-        <a href="/logout">Logout</a>
     </div>
 </div>
 
-
-<div class="dashboard">
-    <h1>Welcome Tourist 👋</h1>
+<div class="page-container">
+    <h1>Dashboard</h1>
+    <p>Welcome to Smart Tourist Dashboard</p>
 </div>
 
 </body>

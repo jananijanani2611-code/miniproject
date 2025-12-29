@@ -7,16 +7,23 @@
 <body>
 
 <div class="navbar">
-    <div class="logo">Admin Panel</div>
+    <div class="logo">SmartTourist</div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/map">Map</a>
+    </div>
 </div>
 
-<div class="auth-box">
-    <h1>Admin Login</h1>
-    <form method="post">
-        <input placeholder="Username" required>
-        <input type="password" placeholder="Password" required>
-        <button>Login</button>
-    </form>
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>Admin Login</h1>
+        <form method="post">
+            <input type="text" placeholder="Admin Username" required>
+            <input type="password" placeholder="Password" required>
+            <button class="primary-btn">Login</button>
+        </form>
+    </div>
 </div>
 
 </body>
