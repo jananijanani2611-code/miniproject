@@ -1,0 +1,14 @@
+<div class="navbar">
+    <div class="logo">SmartTourist</div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a>
+<a href="{{ url_for('map_page') }}">Map</a>
+<a href="{{ url_for('how_to_use') }}">How to Use</a>
+
+
+        {% if current_user.is_authenticated %}
+            <a href="/logout">Logout</a>
+        {% endif %}
+    </div>
+</div>

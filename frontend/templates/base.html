@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Tourist Safety</title>
+
+    <!-- ✅ CSS LINK (THIS WAS MISSING OR WRONG) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>

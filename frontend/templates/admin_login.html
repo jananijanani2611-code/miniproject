@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>Admin Login</h1>
+        <form method="post">
+            <input name="email" type="email" placeholder="Admin Email" required>
+            <input name="password" type="password" placeholder="Password" required>
+            <button class="primary-btn">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,14 +8,7 @@
 </head>
 <body>
 
-<div class="navbar">
-    <div class="logo">Admin Panel</div>
-    <div class="nav-links">
-        <a href="/admin/dashboard">Dashboard</a>
-        <a href="/admin/sos">SOS Alerts</a>
-        <a href="/admin/login">Logout</a>
-    </div>
-</div>
+{% include "_navbar.html" %}
 
 
 <div class="dashboard">
@@ -33,6 +28,12 @@
         {% endfor %}
     </table>
 </div>
+<td>
+⚠️ SOS from user {{ alert.user_id }} <br>
+📍 Location: {{ alert.lat }}, {{ alert.lng }} <br>
+🕒 {{ alert.time.strftime('%d %b %Y %H:%M') }} <br>
+🤖 AI Suggestion: Immediate rescue required.
+</td>
 
 </body>
 </html>

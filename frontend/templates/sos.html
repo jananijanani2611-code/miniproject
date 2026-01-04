@@ -1,0 +1,76 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+{% include "_navbar.html" %}
+
+    <div class="sos-center">
+        <a href="/sos" class="sos-btn">🚨 SOS</a>
+    </div>
+
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/map">Map</a>
+    </div>
+</div>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>Emergency SOS</h1>
+
+        <form method="post">
+            <button class="primary-btn">SEND SOS</button>
+        </form>
+    </div>
+</div>
+<button onclick="sendSOS()">SEND SOS</button>
+<script src="{{ url_for('static', filename='sos.js') }}"></script>
+
+<script>
+function sendSOS() {
+    if (!navigator.geolocation) {
+        alert("GPS not supported");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        fetch("/sos", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+            })
+        }).then(() => alert("SOS Sent"));
+    }, () => {
+        // Offline → store locally
+        localStorage.setItem("pendingSOS", "true");
+        alert("No signal. SOS saved.");
+    });
+}
+</script>
+<script>
+navigator.geolocation.getCurrentPosition(position => {
+    document.querySelector("button").onclick = () => {
+        fetch("/sos", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            })
+        }).then(() => alert("SOS Sent to Admin"));
+    };
+});
+</script>
+
+</body>
+</html>

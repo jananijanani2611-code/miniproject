@@ -143,3 +143,57 @@ body {
 .primary-btn:hover {
     background: #16325c;
 }
+.sos-home {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+.how-section {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 30px;
+}
+
+.how-section h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #1e3c72;
+}
+
+.how-step {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+/* HOW TO USE PAGE */
+.how-section {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.how-step {
+    background: white;
+    margin-bottom: 25px;
+    padding: 25px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    transition: transform 0.3s ease;
+}
+
+.how-step:hover {
+    transform: translateY(-5px);
+}
+
+.how-step h2 {
+    color: #1e3c72;
+    margin-bottom: 10px;
+}
+
+.how-step p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+}
