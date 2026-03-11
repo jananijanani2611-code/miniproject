@@ -1,69 +1,65 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, request, redirect, url_for, session, abort, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import os
+import hashlib
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from db_ext import db
+from models import User, SOS, AIReport, RiskZone
 
-app = Flask(
-    __name__,
-    template_folder="../frontend/templates",
-    static_folder="../frontend/static"
-)
+app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
+app.secret_key = "super_secret_key_change_in_production"
 
-app.config['SECRET_KEY'] = 'super-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, "database.db")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+with app.app_context():
+    db.create_all()
 
-# ================= MODELS =================
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(200))
-    role = db.Column(db.String(20))  # tourist / admin
+# ================ AI RISK CALCULATION ================
+def calculate_risk(minutes_lost):
+    """AI-based risk assessment"""
+    if minutes_lost > 30:
+        return "RED", "🔴 CRITICAL: Tourist in very dangerous zone. Immediate rescue needed!"
+    elif minutes_lost > 10:
+        return "YELLOW", "🟡 WARNING: Tourist in risky area. Monitor closely and prepare response."
+    else:
+        return "GREEN", "🟢 SAFE: Tourist location tracked. No immediate danger."
 
-class SOS(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-    lat = db.Column(db.Float)
-    lng = db.Column(db.Float)
-    status = db.Column(db.String(20), default="SENT")
-    time = db.Column(db.DateTime, default=datetime.utcnow)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# ================ BLOCKCHAIN HASH GENERATION ================
+def generate_hash(data):
+    """Generate SHA-256 hash for blockchain integrity"""
+    return hashlib.sha256(data.encode()).hexdigest()
 
-# ================= ROUTES =================
 
+# ================ HOME PAGE ================
 @app.route("/")
 def home():
     return render_template("home.html")
 
-# ---------- Tourist Login ----------
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
 
-        user = User.query.filter_by(email=email, role="tourist").first()
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect("/dashboard")
+# ================ ABOUT PAGE ================
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
-    return render_template("login.html")
 
-# ---------- Tourist Register ----------
+# ================ AI RISK INFO PAGE ================
+@app.route("/risk")
+def risk_info():
+    return render_template("risk.html")
+
+
+# ================ GUIDELINES PAGE ================
+@app.route("/guidelines")
+def guidelines():
+    return render_template("guidelines.html")
+
+
+# ================ USER REGISTRATION ================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -71,92 +67,236 @@ def register():
         email = request.form["email"]
         password = generate_password_hash(request.form["password"])
 
-        user = User(name=name, email=email, password=password, role="tourist")
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return "Email already registered. Please login."
+
+        # AUTO-GENERATE USERNAME
+        username = email.split("@")[0]
+
+        # CREATE USER OBJECT
+        user = User(
+            name=name,
+            username=username,
+            email=email,
+            password=password,
+            role="tourist"
+        )
+
         db.session.add(user)
         db.session.commit()
-        return redirect("/login")
+
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 
-# ---------- Admin Login ----------
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
+
+# ================ USER LOGIN ================
+@app.route("/login", methods=["GET", "POST"])
+def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
 
-        admin = User.query.filter_by(email=email, role="admin").first()
-        if admin and check_password_hash(admin.password, password):
-            login_user(admin)
-            return redirect("/admin/dashboard")
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            # Prevent admin from logging in through tourist login
+            if user.role == "admin":
+                return "Admin users must use /admin/login"
+            
+            session["user"] = user.email
+            session["role"] = user.role
+            return redirect(url_for("dashboard"))
 
-    return render_template("admin_login.html")
+        return "Invalid email or password. Please try again."
 
-# ---------- Dashboard ----------
+    return render_template("login.html")
+
+
+# ================ TOURIST DASHBOARD ================
 @app.route("/dashboard")
-@login_required
 def dashboard():
-    if current_user.role != "tourist":
-        return redirect("/")
+    if "user" not in session:
+        return redirect(url_for("login"))
+    
+    if session.get("role") == "admin":
+        return redirect(url_for("admin_sos"))
+    
     return render_template("dashboard.html")
 
-# ---------- Map ----------
+
+# ================ SOS PAGE (For Tourists) ================
+@app.route("/sos")
+def sos_page():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("sos.html")
+# ================ PUBLIC MAP PAGE (No Login Required) ================
 @app.route("/map")
 def map_page():
     return render_template("map.html")
 
+# ================ SOS API (Website + IoT Device) ================
+@app.route("/api/sos", methods=["POST"])
+def sos_api():
+    """Receives SOS alerts from website or IoT devices"""
+    data = request.json
 
-# ---------- SOS ----------
-@app.route("/sos", methods=["GET", "POST"])
-@login_required
-def sos():
-    if request.method == "POST":
-        data = request.json
-        alert = SOS(
-            user_id=current_user.id,
-            lat=data["lat"],
-            lng=data["lng"]
+    email = data.get("email")
+    lat = data.get("lat")
+    lon = data.get("lon")
+    minutes_lost = data.get("minutes_lost", 0)
+    
+    # Calculate AI risk level
+    risk, message = calculate_risk(minutes_lost)
+
+    # Generate blockchain hash for data integrity
+    timestamp = datetime.utcnow()
+    raw_data = f"{email}|{lat}|{lon}|{timestamp}|{minutes_lost}"
+    block_hash = generate_hash(raw_data)
+
+    # Store SOS in database
+    sos = SOS(
+        user_email=email,
+        latitude=lat,
+        longitude=lon,
+        risk_level=risk,
+        message=message,
+        block_hash=block_hash
+    )
+
+    db.session.add(sos)
+    db.session.commit()
+
+    # ✨ AUTO-GENERATE AI REPORT
+    user = User.query.filter_by(email=email).first()
+    
+    if user:
+        # Create AI Report
+        ai_report = AIReport(
+            user_id=user.id,
+            location=f"Lat: {lat}, Lon: {lon}",
+            risk_level="High" if risk == "RED" else ("Medium" if risk == "YELLOW" else "Low"),
+            risk_score=0.95 if risk == "RED" else (0.65 if risk == "YELLOW" else 0.25)
         )
-        db.session.add(alert)
+        
+        db.session.add(ai_report)
         db.session.commit()
-        return jsonify({"status": "sent"})
 
-    return render_template("sos.html")
+    return jsonify({
+        "status": "SOS_RECEIVED",
+        "risk": risk,
+        "message": message,
+        "sos_id": sos.id,
+        "ai_report_generated": True,
+        "timestamp": timestamp.isoformat(),
+        "blockchain_hash": block_hash[:16] + "..."
+    })
 
-# ---------- Admin Dashboard ----------
-@app.route("/admin/dashboard")
-@login_required
-def admin_dashboard():
-    if current_user.role != "admin":
-        return redirect("/")
-    alerts = SOS.query.all()
-    return render_template("admin_sos.html", alerts=alerts)
 
-# ---------- Logout ----------
+# ================ MAP DATA API ================
+@app.route("/api/map-data")
+def map_data():
+    """Returns all SOS locations with risk levels"""
+    sos_list = SOS.query.all()
+    data = []
+
+    for s in sos_list:
+        data.append({
+            "id": s.id,
+            "lat": s.latitude,
+            "lng": s.longitude,
+            "risk": s.risk_level,
+            "email": s.user_email,
+            "time": s.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    return jsonify(data)
+
+
+# ================ ADMIN LOGIN ================
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        admin = User.query.filter_by(email=email, role="admin").first()
+
+        if admin and check_password_hash(admin.password, password):
+            session.clear()
+            session["user"] = admin.email
+            session["role"] = "admin"
+            return redirect(url_for("admin_sos"))
+
+        return "Invalid admin credentials. Access denied."
+
+    return render_template("admin_login.html")
+
+
+# ================ ADMIN SOS DASHBOARD ================
+@app.route("/admin/sos")
+def admin_sos():
+    """Admin dashboard - Tourists CANNOT access this"""
+    if session.get("role") != "admin":
+        abort(403)
+
+    sos_list = SOS.query.order_by(SOS.timestamp.desc()).all()
+    return render_template("admin_sos.html", sos_list=sos_list)
+
+
+# ================ ADMIN AI REPORTS ================
+@app.route("/admin/ai-reports")
+def admin_ai_reports():
+    if session.get("role") != "admin":
+        abort(403)
+
+    reports = AIReport.query.order_by(AIReport.created_at.desc()).all()
+    return render_template("admin_ai_reports.html", reports=reports)
+
+
+# ================ LOGOUT ================
 @app.route("/logout")
 def logout():
-    logout_user()
-    return redirect("/")
-
-@app.route("/how-to-use")
-def how_to_use():
-    return render_template("how_to_use.html")
+    session.clear()
+    return redirect(url_for("home"))
 
 
+# ================ ERROR HANDLERS ================
+@app.errorhandler(403)
+def forbidden(e):
+    return """
+    <h1>403 - Access Forbidden</h1>
+    <p>You don't have permission to access this page.</p>
+    <p>Tourists cannot access admin areas.</p>
+    <p><a href="/">← Back to Home</a></p>
+    """, 403
 
-# ================= INIT =================
+
+# ================ UTILITY: Create Admin Account ================
+@app.route("/create-admin-secret")
+def create_admin():
+    """One-time route to create admin account"""
+    admin_email = "admin@tourist.com"
+    existing_admin = User.query.filter_by(email=admin_email).first()
+    
+    if existing_admin:
+        return "✅ Admin already exists! Email: admin@tourist.com | Password: admin123"
+    
+    admin = User(
+        name="Admin",
+        username="admin",
+        email=admin_email,
+        password=generate_password_hash("admin123"),
+        role="admin"
+    )
+
+    db.session.add(admin)
+    db.session.commit()
+    
+    return "✅ Admin created! Email: admin@tourist.com | Password: admin123"
+
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-
-        if not User.query.filter_by(role="admin").first():
-            admin = User(
-                name="Admin",
-                email="admin@smart.com",
-                password=generate_password_hash("admin123"),
-                role="admin"
-            )
-            db.session.add(admin)
-            db.session.commit()
-
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)
