@@ -1,9 +1,238 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
-
 {% block content %}
-<div class="page-container">
-    <h1>Dashboard</h1>
-    <p>Welcome {{ current_user.name }}</p>
+
+<div class="dashboard">
+    <h1>Welcome, Tourist 👋</h1>
+
+    <div class="cards">
+        <div class="card location-card">
+            <h3>📍 Live Location Map</h3>
+            <p>Tracking enabled</p>
+            <div class="mini-map-container">
+                <canvas id="miniMapCanvas" width="280" height="180"></canvas>
+                <div class="map-mini-legend">
+                    <div><span class="dot-mini green"></span>Safe</div>
+                    <div><span class="dot-mini yellow"></span>Warning</div>
+                    <div><span class="dot-mini red"></span>Danger</div>
+                </div>
+            </div>
+            <a href="/map" style="display:block;margin-top:10px;text-align:center;color:#5b3df5;font-size:14px">View Full Map →</a>
+        </div>
+
+        <div class="card signal-card">
+            <h3>📶 Signal Status</h3>
+            <p id="signal-status">Checking...</p>
+            <small id="signal-info" style="color:#666">Monitoring GPS signal...</small>
+        </div>
+
+        <div class="card alert">
+            <h3>Emergency</h3>
+            <a href="/sos" class="btn-danger">🚨 SOS</a>
+            <p style="font-size:14px;margin-top:10px;color:#fff">Press for immediate help</p>
+        </div>
+    </div>
 </div>
+
+<script>
+function drawMiniMap() {
+    const canvas = document.getElementById('miniMapCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Background
+    ctx.fillStyle = '#e8f4f8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Grid
+    ctx.strokeStyle = '#d0d0d0';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < canvas.width; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+    }
+    
+    // Fetch and plot SOS locations
+    fetch('/api/map-data')
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                // Show "No data" text
+                ctx.fillStyle = '#999';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('No alerts yet', canvas.width/2, canvas.height/2);
+                return;
+            }
+
+            data.forEach(point => {
+                const x = ((point.lng + 180) / 360) * canvas.width;
+                const y = ((90 - point.lat) / 180) * canvas.height;
+                
+                let innerColor, borderColor;
+                
+                // 3-color border effect
+                if (point.risk === 'GREEN') {
+                    innerColor = '#00cc66';
+                    borderColor = '#00ff88';
+                } else if (point.risk === 'YELLOW') {
+                    innerColor = '#ffaa00';
+                    borderColor = '#ffcc00';
+                } else {
+                    innerColor = '#ff4444';
+                    borderColor = '#ff6666';
+                }
+                
+                // Draw marker - Layer 1: Glow
+                ctx.fillStyle = borderColor;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                
+                // Layer 2: Colored border
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 7, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Layer 3: Inner circle
+                ctx.fillStyle = innerColor;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Layer 4: White outline
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            });
+        })
+        .catch(err => {
+            ctx.fillStyle = '#999';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Loading map...', canvas.width/2, canvas.height/2);
+        });
+}
+
+// Check GPS signal status
+function checkSignalStatus() {
+    if (!navigator.geolocation) {
+        document.getElementById('signal-status').innerHTML = "Not Available";
+        document.getElementById('signal-status').style.color = '#999';
+        document.getElementById('signal-info').innerHTML = "GPS not supported";
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            // Signal is active
+            document.getElementById('signal-status').innerHTML = "🟢 Active";
+            document.getElementById('signal-status').style.color = '#00cc66';
+            document.getElementById('signal-info').innerHTML = "GPS signal strong";
+        },
+        function(error) {
+            // Signal lost or permission denied
+            if (error.code === error.PERMISSION_DENIED) {
+                document.getElementById('signal-status').innerHTML = "⚠️ Disabled";
+                document.getElementById('signal-status').style.color = '#ffaa00';
+                document.getElementById('signal-info').innerHTML = "Enable location access";
+            } else {
+                document.getElementById('signal-status').innerHTML = "🔴 Lost";
+                document.getElementById('signal-status').style.color = '#ff4444';
+                document.getElementById('signal-info').innerHTML = "No GPS signal detected";
+            }
+        }
+    );
+}
+
+window.onload = function() {
+    drawMiniMap();
+    checkSignalStatus();
+    
+    // Recheck signal every 15 seconds
+    setInterval(checkSignalStatus, 15000);
+};
+</script>
+
+<style>
+.location-card {
+    position: relative;
+}
+
+.mini-map-container {
+    position: relative;
+    margin-top: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #e8f4f8;
+}
+
+#miniMapCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.map-mini-legend {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.95);
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.map-mini-legend div {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+}
+
+.dot-mini {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.dot-mini.green { 
+    background: #00cc66; 
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 0 1px white;
+}
+
+.dot-mini.yellow { 
+    background: #ffaa00; 
+    border: 2px solid #ffcc00;
+    box-shadow: 0 0 0 1px white;
+}
+
+.dot-mini.red { 
+    background: #ff4444; 
+    border: 2px solid #ff6666;
+    box-shadow: 0 0 0 1px white;
+}
+
+.signal-card p {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+</style>
+
 {% endblock %}

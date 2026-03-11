@@ -1,0 +1,294 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6ff;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+    color: #5b3df5;
+}
+
+.nav-links a {
+    margin-left: 15px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.btn-nav {
+    padding: 6px 14px;
+    border: 1px solid #5b3df5;
+    border-radius: 6px;
+}
+
+.btn-nav.primary {
+    background: #5b3df5;
+    color: white;
+}
+
+/* HERO */
+.hero {
+    padding: 80px 60px;
+    background: linear-gradient(135deg, #5b3df5, #7c5cff);
+    color: white;
+}
+
+.hero h1 {
+    font-size: 46px;
+}
+
+.hero p {
+    max-width: 600px;
+    font-size: 18px;
+}
+
+.hero-buttons {
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 12px 26px;
+    background: white;
+    color: #5b3df5;
+    border-radius: 8px;
+    margin-right: 10px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn.outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+}
+
+.sos {
+    display: inline-block;
+    margin-top: 20px;
+    color: #ffdcdc;
+    font-weight: bold;
+}
+
+/* FEATURES */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    padding: 60px;
+}
+
+.feature-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+}
+
+.feature-card h3 {
+    margin-bottom: 10px;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #1f1f3a;
+    color: white;
+}
+/* AUTH CONTAINER */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 40px;
+}
+
+.auth-box {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-box h2 {
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.auth-box input:focus {
+    outline: none;
+    border-color: #5b3df5;
+}
+
+.btn-primary {
+    background: #5b3df5;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background: #4a2de0;
+    transform: translateY(-2px);
+}
+
+.btn-primary.full {
+    width: 100%;
+}
+
+.link-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.link-text a {
+    color: #5b3df5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* DASHBOARD */
+.dashboard {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard h1 {
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.card h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.card p {
+    font-size: 18px;
+    color: #666;
+}
+
+.card.alert {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: white;
+}
+
+.card.alert h3,
+.card.alert p {
+    color: white;
+}
+
+.btn-danger {
+    background: #ff4444;
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-danger:hover {
+    background: #cc0000;
+    transform: scale(1.05);
+}
+.location-card-wide {
+    grid-column: 1 / -1; /* Make it span full width */
+}
+
+.map-legend-inline {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f8f8;
+    border-radius: 6px;
+}
+
+.dot-inline {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.dot-inline.green { 
+    background: #00cc66; 
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 0 1px white;
+}
+
+.dot-inline.yellow { 
+    background: #ffaa00; 
+    border: 2px solid #ffcc00;
+    box-shadow: 0 0 0 1px white;
+}
+
+.dot-inline.red { 
+    background: #ff4444; 
+    border: 2px solid #ff6666;
+    box-shadow: 0 0 0 1px white;
+}
+
+.custom-sos-marker {
+    background: transparent;
+    border: none;
+}
+
+.user-location-marker {
+    background: transparent;
+    border: none;
+}

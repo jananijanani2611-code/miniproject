@@ -1,39 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin SOS Alerts</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+<div style="padding:20px;max-width:1200px;margin:auto;">
 
-{% include "_navbar.html" %}
+<h1>🚨 Admin SOS Dashboard</h1>
 
+<button onclick="refreshPage()">Refresh</button>
 
-<div class="dashboard">
-    <h1>🚨 SOS Alerts</h1>
+<br><br>
 
-    <table class="admin-table">
-        <tr>
-            <th>Location</th>
-            <th>Status</th>
-        </tr>
+<h2>Tourist Locations Map</h2>
 
-        {% for alert in alerts %}
-        <tr>
-            <td>{{ alert.location }}</td>
-            <td style="color:red;font-weight:bold;">{{ alert.status }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+<div id="map" style="height:400px;border-radius:8px;"></div>
+
+<br>
+
+<h2>Recent SOS Alerts</h2>
+
+<table border="1" cellpadding="10" style="width:100%;border-collapse:collapse;">
+<thead>
+<tr>
+<th>ID</th>
+<th>Email</th>
+<th>Latitude</th>
+<th>Longitude</th>
+<th>Risk</th>
+<th>Time</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for sos in sos_list %}
+
+<tr>
+<td>{{ sos.id }}</td>
+<td>{{ sos.user_email }}</td>
+<td>{{ sos.latitude }}</td>
+<td>{{ sos.longitude }}</td>
+<td>{{ sos.risk_level }}</td>
+<td>{{ sos.timestamp }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+
 </div>
-<td>
-⚠️ SOS from user {{ alert.user_id }} <br>
-📍 Location: {{ alert.lat }}, {{ alert.lng }} <br>
-🕒 {{ alert.time.strftime('%d %b %Y %H:%M') }} <br>
-🤖 AI Suggestion: Immediate rescue required.
-</td>
 
-</body>
-</html>
+<!-- SOS Alert Sound -->
+
+<audio id="sosSound">
+<source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+</audio>
+
+<script>
+
+var map = L.map('map').setView([11.0168, 76.9558], 7);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+maxZoom:19
+}
+).addTo(map);
+
+function loadLocations(){
+
+fetch('/api/map-data')
+.then(function(response){
+return response.json();
+})
+.then(function(data){
+
+if(!data){
+return;
+}
+
+data.forEach(function(point){
+
+var color="green";
+var radius=8;
+
+if(point.risk==="YELLOW"){
+color="orange";
+}
+
+if(point.risk==="RED"){
+color="red";
+radius=14;
+
+document.getElementById("sosSound").play();
+
+alert("🚨 SOS ALERT!\nTourist may be in danger!");
+}
+
+L.circleMarker(
+[point.lat,point.lng],
+{
+radius:radius,
+color:color,
+fillColor:color,
+fillOpacity:0.8
+}
+)
+.addTo(map)
+.bindPopup(
+"Email: "+point.email+
+"<br>Risk: "+point.risk+
+"<br>Lat: "+point.lat+
+"<br>Lon: "+point.lng
+);
+
+});
+
+})
+.catch(function(error){
+console.log("Map load error:",error);
+});
+
+}
+
+function refreshPage(){
+location.reload();
+}
+
+loadLocations();
+
+setInterval(loadLocations,10000);
+
+</script>
+
+{% endblock %}

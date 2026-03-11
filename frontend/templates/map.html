@@ -1,15 +1,136 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Tourist Map</h1>
-<div id="map" style="height:500px;"></div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<div style="padding:40px">
+  <h2 style="text-align:center">🗺️ Tourist Safety Map – Ooty</h2>
+  <p style="text-align:center;color:gray">
+    Real-time risk zones showing tourist SOS alerts (No Login Required)
+  </p>
+
+  <div id="map" style="height:600px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1)"></div>
+
+  <!-- Legend -->
+  <div style="text-align:center;margin-top:20px;background:#f8f8f8;padding:15px;border-radius:8px">
+    <span style="color:#00cc66;font-weight:bold;font-size:18px">● Safe Zone (0-10 min)</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <span style="color:#ffaa00;font-weight:bold;font-size:18px">● Warning (10-30 min)</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <span style="color:#ff4444;font-weight:bold;font-size:18px">● Danger (30+ min)</span>
+  </div>
+
+  <div style="text-align:center;margin-top:20px">
+    <p>🔐 <a href="/login" style="color:#5b3df5;font-weight:bold">Login</a> to access full tracking and SOS features</p>
+  </div>
+</div>
 
 <script>
-    const map = L.map('map').setView([20.5937, 78.9629], 5);
+  // Create map - will auto-center when data loads
+  const map = L.map("map").setView([11.4064, 76.6932], 6); // Start zoomed out
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  // Custom icons with 3-color borders
+  const greenIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="width:20px;height:20px;border-radius:50%;background:#00cc66;border:3px solid #00ff88;box-shadow:0 0 0 2px white"></div>',
+    iconSize: [20, 20]
+  });
+
+  const yellowIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="width:20px;height:20px;border-radius:50%;background:#ffaa00;border:3px solid #ffcc00;box-shadow:0 0 0 2px white"></div>',
+    iconSize: [20, 20]
+  });
+
+  const redIcon = L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="width:20px;height:20px;border-radius:50%;background:#ff4444;border:3px solid #ff6666;box-shadow:0 0 0 2px white"></div>',
+    iconSize: [20, 20]
+  });
+
+  // Load REAL SOS data from your database
+  fetch("/api/map-data")
+    .then(response => response.json())
+    .then(data => {
+      if (data.length === 0) {
+        // Show default message - works anywhere in India
+        L.marker([20.5937, 78.9629]) // Center of India
+          .addTo(map)
+          .bindPopup("<b>No SOS alerts yet</b><br>Map will show tourist locations when SOS is triggered")
+          .openPopup();
+        map.setView([20.5937, 78.9629], 5); // India view
+        return;
+      }
+
+      const markers = [];
+
+      data.forEach(point => {
+        let icon, riskText, riskColor;
+        
+        if (point.risk === 'GREEN') {
+          icon = greenIcon;
+          riskText = 'SAFE';
+          riskColor = '#00cc66';
+        } else if (point.risk === 'YELLOW') {
+          icon = yellowIcon;
+          riskText = 'WARNING';
+          riskColor = '#ffaa00';
+        } else {
+          icon = redIcon;
+          riskText = 'DANGER';
+          riskColor = '#ff4444';
+        }
+
+        // Add marker
+        const marker = L.marker([point.lat, point.lng], { icon: icon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="min-width:200px">
+              <h3 style="margin:0 0 10px 0">Tourist Alert</h3>
+              <p><strong>Risk Level:</strong> <span style="color:${riskColor};font-weight:bold">${riskText}</span></p>
+              <p><strong>Location:</strong> ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</p>
+              <p><strong>Time:</strong> ${point.time}</p>
+              <p style="font-size:12px;color:#666">Tourist: ${point.email}</p>
+            </div>
+          `);
+
+        markers.push([point.lat, point.lng]);
+      });
+
+      // Auto-fit map to show all markers (works for Coimbatore, Ooty, anywhere!)
+      if (markers.length > 0) {
+        const bounds = L.latLngBounds(markers);
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    })
+    .catch(err => {
+      console.log('Loading map data...');
+      map.setView([20.5937, 78.9629], 5); // India view
+    });
 </script>
+
+<style>
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.leaflet-popup-content {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.leaflet-popup-content h3 {
+  color: #333;
+  border-bottom: 2px solid #5b3df5;
+  padding-bottom: 5px;
+}
+</style>
+
 {% endblock %}

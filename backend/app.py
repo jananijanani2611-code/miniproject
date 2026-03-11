@@ -140,80 +140,84 @@ def map_page():
 # ================ SOS API (Website + IoT Device) ================
 @app.route("/api/sos", methods=["POST"])
 def sos_api():
-    """Receives SOS alerts from website or IoT devices"""
-    data = request.json
+    try:
+        # Get JSON data safely
+        data = request.get_json()
 
-    email = data.get("email")
-    lat = data.get("lat")
-    lon = data.get("lon")
-    minutes_lost = data.get("minutes_lost", 0)
-    
-    # Calculate AI risk level
-    risk, message = calculate_risk(minutes_lost)
+        email = data.get("email") or session.get("user")
+        lat = data.get("lat")
+        lon = data.get("lon")
+        minutes_lost = data.get("minutes_lost", 0)
 
-    # Generate blockchain hash for data integrity
-    timestamp = datetime.utcnow()
-    raw_data = f"{email}|{lat}|{lon}|{timestamp}|{minutes_lost}"
-    block_hash = generate_hash(raw_data)
+        # Validate data
+        if not email or lat is None or lon is None:
+            return jsonify({"error": "Invalid SOS data"}), 400
 
-    # Store SOS in database
-    sos = SOS(
-        user_email=email,
-        latitude=lat,
-        longitude=lon,
-        risk_level=risk,
-        message=message,
-        block_hash=block_hash
-    )
+        # Calculate AI risk
+        risk, message = calculate_risk(minutes_lost)
 
-    db.session.add(sos)
-    db.session.commit()
+        # Generate blockchain hash
+        timestamp = datetime.utcnow()
+        raw_data = f"{email}|{lat}|{lon}|{timestamp}|{minutes_lost}"
+        block_hash = generate_hash(raw_data)
 
-    # ✨ AUTO-GENERATE AI REPORT
-    user = User.query.filter_by(email=email).first()
-    
-    if user:
-        # Create AI Report
-        ai_report = AIReport(
-            user_id=user.id,
-            location=f"Lat: {lat}, Lon: {lon}",
-            risk_level="High" if risk == "RED" else ("Medium" if risk == "YELLOW" else "Low"),
-            risk_score=0.95 if risk == "RED" else (0.65 if risk == "YELLOW" else 0.25)
+        # Save SOS to database
+        sos = SOS(
+            user_email=email,
+            latitude=float(lat),
+            longitude=float(lon),
+            risk_level=risk,
+            message=message,
+            block_hash=block_hash
         )
-        
-        db.session.add(ai_report)
+
+        db.session.add(sos)
         db.session.commit()
 
-    return jsonify({
-        "status": "SOS_RECEIVED",
-        "risk": risk,
-        "message": message,
-        "sos_id": sos.id,
-        "ai_report_generated": True,
-        "timestamp": timestamp.isoformat(),
-        "blockchain_hash": block_hash[:16] + "..."
-    })
+        # Generate AI report
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            ai_report = AIReport(
+                user_id=user.id,
+                location=f"Lat: {lat}, Lon: {lon}",
+                risk_level="High" if risk == "RED" else ("Medium" if risk == "YELLOW" else "Low"),
+                risk_score=0.95 if risk == "RED" else (0.65 if risk == "YELLOW" else 0.25)
+            )
+
+            db.session.add(ai_report)
+            db.session.commit()
+
+        return jsonify({
+            "status": "SOS_RECEIVED",
+            "risk": risk,
+            "message": message,
+            "sos_id": sos.id,
+            "timestamp": timestamp.isoformat()
+        })
+
+    except Exception as e:
+        print("SOS ERROR:", e)
+        return jsonify({"error": str(e)}), 500
 
 
 # ================ MAP DATA API ================
 @app.route("/api/map-data")
 def map_data():
-    """Returns all SOS locations with risk levels"""
-    sos_list = SOS.query.all()
-    data = []
 
-    for s in sos_list:
-        data.append({
+    sos_list = SOS.query.order_by(SOS.timestamp.desc()).limit(100).all()
+
+    return jsonify([
+        {
             "id": s.id,
             "lat": s.latitude,
             "lng": s.longitude,
             "risk": s.risk_level,
             "email": s.user_email,
             "time": s.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        })
-
-    return jsonify(data)
-
+        }
+        for s in sos_list
+    ])
 
 # ================ ADMIN LOGIN ================
 @app.route("/admin/login", methods=["GET", "POST"])

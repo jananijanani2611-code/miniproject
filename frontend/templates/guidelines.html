@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="info-page">
+    <h1>📋 Tourist Safety Guidelines</h1>
+    
+    <div class="info-content">
+        <section>
+            <h2>✅ Before Your Trip</h2>
+            <ul>
+                <li>Register at the tourist entry point</li>
+                <li>Collect your IoT tracking device</li>
+                <li>Install the Smart Tourist app on your phone</li>
+                <li>Share your itinerary with family/friends</li>
+                <li>Check weather forecasts</li>
+                <li>Pack appropriate clothing and gear</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>📱 Using the IoT Device</h2>
+            <ul>
+                <li><strong>Keep it charged:</strong> Charge your device daily</li>
+                <li><strong>Keep it ON:</strong> Never switch off the tracking device</li>
+                <li><strong>Carry it always:</strong> Don't leave it in your hotel</li>
+                <li><strong>SOS Button:</strong> Red button for emergencies only</li>
+                <li><strong>Test it:</strong> Ensure it's working before trekking</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🥾 During Trekking</h2>
+            <ul>
+                <li>Stay on marked trails</li>
+                <li>Don't venture into restricted areas</li>
+                <li>Trek in groups, never alone</li>
+                <li>Inform someone about your route</li>
+                <li>Carry water, snacks, and first aid</li>
+                <li>Respect local wildlife and environment</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>🚨 In Case of Emergency</h2>
+            <ul>
+                <li><strong>Press SOS:</strong> Hold the red button for 3 seconds</li>
+                <li><strong>Stay calm:</strong> Don't panic</li>
+                <li><strong>Stay visible:</strong> Don't hide in dense areas</li>
+                <li><strong>Save battery:</strong> Reduce phone usage</li>
+                <li><strong>Wait for help:</strong> Rescue team will be dispatched</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>⚠️ What NOT to Do</h2>
+            <ul>
+                <li>❌ Don't switch off your tracking device</li>
+                <li>❌ Don't trek during heavy rain or fog</li>
+                <li>❌ Don't ignore warning signs</li>
+                <li>❌ Don't separate from your group</li>
+                <li>❌ Don't consume alcohol while trekking</li>
+                <li>❌ Don't litter - keep hills clean</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>📞 Emergency Contacts</h2>
+            <p><strong>Tourist Helpline:</strong> 1800-XXX-XXXX</p>
+            <p><strong>Police:</strong> 100</p>
+            <p><strong>Ambulance:</strong> 108</p>
+            <p><strong>Forest Department:</strong> 0423-XXX-XXXX</p>
+        </section>
+    </div>
+
+    <a href="/" class="btn-back">← Back to Home</a>
+</div>
+
+<style>
+.info-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.info-page h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+.info-content section {
+    background: white;
+    padding: 30px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.info-content h2 {
+    color: #5b3df5;
+    margin-bottom: 20px;
+}
+
+.info-content ul {
+    line-height: 1.8;
+    color: #555;
+}
+
+.info-content ul li {
+    margin-bottom: 12px;
+}
+
+.info-content ul li strong {
+    color: #333;
+}
+
+.btn-back {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 12px 30px;
+    background: #5b3df5;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-back:hover {
+    background: #4a2de0;
+}
+</style>
+
+{% endblock %}

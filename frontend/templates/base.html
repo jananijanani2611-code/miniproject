@@ -2,16 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Tourist Safety</title>
+    <title>Smart Tourist Safety System</title>
 
-    <!-- ✅ CSS LINK (THIS WAS MISSING OR WRONG) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- CSS LINK (VERY IMPORTANT) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    {% include "_navbar.html" %}
+<nav class="navbar">
+    <div class="logo">SmartTourist</div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/risk">AI Risk</a>
+        <a href="/guidelines">Guidelines</a>
+        <a href="{{ url_for('sos_page') }}">Map</a>
+        <a href="/login" class="btn-nav">Login</a>
+        <a href="/register" class="btn-nav primary">Register</a>
+    </div>
+</nav>
 
-    {% block content %}{% endblock %}
+{% block content %}{% endblock %}
 
 </body>
 </html>

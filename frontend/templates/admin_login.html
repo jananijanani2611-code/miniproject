@@ -1,14 +1,26 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <div class="auth-container">
-    <div class="auth-box">
-        <h1>Admin Login</h1>
-        <form method="post">
-            <input name="email" type="email" placeholder="Admin Email" required>
-            <input name="password" type="password" placeholder="Password" required>
-            <button class="primary-btn">Login</button>
-        </form>
-    </div>
+    <form class="auth-box" method="POST" action="/admin/login">
+        <h2>🔐 Admin Login</h2>
+        <p style="color: #666; margin-bottom: 20px;">Authorized Personnel Only</p>
+
+        <input type="email" name="email" placeholder="Admin Email" required>
+        <input type="password" name="password" placeholder="Admin Password" required>
+
+        <button type="submit" class="btn-primary full">Access Admin Panel</button>
+
+        <p class="link-text">
+            <a href="/">← Back to Home</a>
+        </p>
+    </form>
 </div>
+
+<style>
+.auth-box h2 {
+    color: #ff4444;
+}
+</style>
+
 {% endblock %}

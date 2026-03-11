@@ -20,6 +20,7 @@ class SOS(db.Model):
     message = db.Column(db.String(255))
     block_hash = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 class AIReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)

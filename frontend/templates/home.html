@@ -1,17 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero">
+<section class="hero">
     <h1>Smart Tourist Safety System</h1>
-    <p>AI + IoT based safety solution</p>
+    <p>
+        AI + IoT powered platform ensuring tourist safety through real-time
+        monitoring, intelligent risk prediction, and emergency response.
+    </p>
 
-    <div class="login-buttons">
-        <a href="/login" class="btn tourist">Tourist Login</a>
-        <a href="/admin/login" class="btn admin">Admin Login</a>
+    <div class="hero-buttons">
+        <a href="/login" class="btn">Tourist Login</a>
+        <a href="/admin/login" class="btn outline">Admin Login</a>
     </div>
 
-    <div class="sos-home">
-        <a href="/sos" class="sos-btn">🚨 SOS</a>
+    <a href="/sos" class="sos">🚨 Emergency SOS</a>
+</section>
+
+<section class="features">
+    <div class="feature-card">
+        <h3>📍 Live Tracking</h3>
+        <p>Real-time GPS monitoring of tourists in hill areas.</p>
     </div>
-</div>
+
+    <div class="feature-card">
+        <h3>🤖 AI Risk Prediction</h3>
+        <p>AI classifies areas as Safe, Warning, or Danger zones.</p>
+    </div>
+
+    <div class="feature-card">
+        <h3>🚨 Emergency SOS</h3>
+        <p>Instant alerts to admin and authorities.</p>
+    </div>
+
+    <div class="feature-card">
+        <h3>🔐 Blockchain Security</h3>
+        <p>Tourist data protected using blockchain integrity.</p>
+    </div>
+</section>
+
+<footer>
+    © 2026 Smart Tourist Safety System | Ooty Pilot Project
+</footer>
 {% endblock %}
