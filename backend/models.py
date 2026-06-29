@@ -32,8 +32,6 @@ class AIReport(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="ai_reports")
-
-    user = db.relationship("User", backref="ai_reports")
     
 # ---------------- RISK ZONE MODEL ----------------
 class RiskZone(db.Model):

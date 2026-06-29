@@ -2,14 +2,20 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import hashlib
+import os
 
 from db_ext import db
 from models import User, SOS, AIReport, RiskZone
 
 app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
-app.secret_key = "super_secret_key_change_in_production"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-fallback-key-do-not-use-in-prod")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+# Use an absolute path so the DB location doesn't depend on the working
+# directory the app happens to be started from, and allow overriding via
+# DATABASE_URL for production (e.g. a managed Postgres instance).
+basedir = os.path.abspath(os.path.dirname(__file__))
+default_sqlite_path = "sqlite:///" + os.path.join(basedir, "instance", "database.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", default_sqlite_path)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
@@ -279,27 +285,40 @@ def forbidden(e):
 
 
 # ================ UTILITY: Create Admin Account ================
+# Gated behind ADMIN_SETUP_KEY so the admin email/password are never
+# exposed publicly. Set ADMIN_SETUP_KEY and ADMIN_SETUP_PASSWORD as
+# environment variables on your host, then visit this route once with
+# ?key=<ADMIN_SETUP_KEY>. If ADMIN_SETUP_KEY isn't set, this route is
+# disabled entirely.
 @app.route("/create-admin-secret")
 def create_admin():
-    """One-time route to create admin account"""
-    admin_email = "admin@tourist.com"
+    """One-time route to create the admin account. Disabled unless
+    ADMIN_SETUP_KEY is configured on the server."""
+    setup_key = os.environ.get("ADMIN_SETUP_KEY")
+    if not setup_key or request.args.get("key") != setup_key:
+        abort(404)
+
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@tourist.com")
+    admin_password = os.environ.get("ADMIN_SETUP_PASSWORD")
+    if not admin_password:
+        return "Set ADMIN_SETUP_PASSWORD on the server before using this route.", 500
+
     existing_admin = User.query.filter_by(email=admin_email).first()
-    
     if existing_admin:
-        return "✅ Admin already exists! Email: admin@tourist.com | Password: admin123"
-    
+        return f"✅ Admin already exists for {admin_email}."
+
     admin = User(
         name="Admin",
         username="admin",
         email=admin_email,
-        password=generate_password_hash("admin123"),
+        password=generate_password_hash(admin_password),
         role="admin"
     )
 
     db.session.add(admin)
     db.session.commit()
-    
-    return "✅ Admin created! Email: admin@tourist.com | Password: admin123"
+
+    return f"✅ Admin created for {admin_email}."
 
 
 if __name__ == "__main__":
